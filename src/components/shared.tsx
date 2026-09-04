@@ -9,7 +9,7 @@ import { Input } from './ui/input';
 import { dateLabel,timeLabel,titleCase } from '@/lib/utils';
 import { active,setWins,standings } from '@/lib/engine';
 import type { Data,Event,Match,Team } from '@/lib/types';
-export function Brand(){return <Link href="/" className="brand" aria-label="Padel Battle Series home"><span className="brand-symbol">P<span>/</span>B</span><span>PADEL BATTLE<span className="brand-series">S E R I E S</span></span></Link>;}
+export function Brand(){return <Link href="/" className="brand" aria-label="ASPORTAINMENT home"><span className="brand-symbol">A</span><span>ASPORTAINMENT</span></Link>;}
 export function Status({value}:{value:string}){return <span className={`badge ${value.toLowerCase()}`}>{['LIVE','ONGOING'].includes(value)&&<span className="status-dot"/>}{titleCase(value)}</span>;}
 export function TeamAvatar({team,size=''}:{team?:Team;size?:string}){return <span className={`team-avatar ${size}`} style={{'--team-hue':`${((team?.name.charCodeAt(0)||0)*19)%360}`} as React.CSSProperties}>{team?.logo?<img src={team.logo} alt=""/>:team?.name.split(' ').map(n=>n[0]).slice(0,2).join('')||'?'}</span>;}
 export function Empty({title='Nothing here yet',description,action}:{title?:string;description?:string;action?:React.ReactNode}){return <div className="empty"><div className="empty-icon"><Trophy size={24}/></div><h3>{title}</h3>{description&&<p>{description}</p>}{action}</div>;}
