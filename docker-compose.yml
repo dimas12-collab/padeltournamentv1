@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: padel-battle-postgres
+    environment:
+      POSTGRES_DB: padel_battle
+      POSTGRES_USER: padel
+      POSTGRES_PASSWORD: padel_local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - padel_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U padel -d padel_battle"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  padel_postgres:

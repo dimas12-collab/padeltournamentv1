@@ -1,0 +1,15 @@
+# Files supplied by Coolify as runtime environment variables must never enter
+# an image layer.
+.env
+.env.*
+!.env.example
+
+.git
+.next
+node_modules
+out
+coverage
+test-results
+playwright-report
+*.log
+*.tsbuildinfo

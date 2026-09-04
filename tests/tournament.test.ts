@@ -1,0 +1,38 @@
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import {createSeed} from '../src/lib/seed';
+import {clearProgression,descendants,scheduleWarnings,setWins,standings,updateScore,validateSets,visibleMatches} from '../src/lib/engine';
+import {useTournament} from '../src/lib/store';
+import type {Data,MatchSet} from '../src/lib/types';
+let d:Data;
+const straight:MatchSet[]=[{a:6,b:3},{a:6,b:4}];
+const reverse:MatchSet[]=[{a:3,b:6},{a:4,b:6}];
+beforeEach(()=>{d=createSeed();const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)||null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)});useTournament.setState({data:createSeed(),userId:'u1',storageError:'',hydrated:false});});
+describe('score validation',()=>{
+ it.each([straight,reverse,[{a:6,b:3},{a:4,b:6},{a:10,b:7}],[{a:3,b:6},{a:6,b:4},{a:7,b:10}],[{a:7,b:6},{a:5,b:7},{a:14,b:12}]])('accepts a complete legal result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeUndefined());
+ it.each([[{a:6,b:5},{a:6,b:2}],[{a:6,b:0},{a:6,b:0},{a:10,b:0}],[{a:6,b:4},{a:3,b:6},{a:10,b:9}],[{a:-1,b:6},{a:2,b:6}],[{a:6.5,b:3},{a:6,b:4}],[{a:6,b:4}]])('rejects invalid result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeTruthy());
+ it('counts set victories independently from games',()=>expect(setWins([{a:6,b:3},{a:4,b:6},{a:10,b:8}])).toEqual({a:2,b:1}));
+});
+describe('derived standings',()=>{
+ it('counts finished group matches only',()=>{const t=standings(d,'g-a').find(r=>r.team.id==='t1')!;expect(t).toMatchObject({MP:2,W:2,L:0,SF:4,SA:1,PTS:6});expect(standings(d,'g-a').find(r=>r.team.id==='t2')!.MP).toBe(1);});
+ it('recalculates after score corrections and reset',()=>{updateScore(d,'m1',reverse,'FINISHED');expect(standings(d,'g-a').find(r=>r.team.id==='t1')).toMatchObject({W:1,L:1,PTS:3});expect(standings(d,'g-a').find(r=>r.team.id==='t2')?.PTS).toBe(3);updateScore(d,'m1',[],'SCHEDULED');expect(standings(d,'g-a').find(r=>r.team.id==='t2')?.MP).toBe(0);});
+ it('removes deleted matches and restores their contribution',()=>{d.matches[0].deletedAt='today';expect(standings(d,'g-a').find(r=>r.team.id==='t1')?.MP).toBe(1);delete d.matches[0].deletedAt;expect(standings(d,'g-a').find(r=>r.team.id==='t1')?.MP).toBe(2);});
+ it('uses result-specific points and updates when rules change',()=>{d.categories[0].rules.split=true;expect(standings(d,'g-a').find(r=>r.team.id==='t1')?.PTS).toBe(5);d.categories[0].rules.split=false;d.categories[0].rules.win=5;expect(standings(d,'g-a').find(r=>r.team.id==='t1')?.PTS).toBe(10);});
+ it('handles multi-team head-to-head mini-table and unresolved ties',()=>{d.matches=d.matches.filter(m=>m.groupId!=='g-a');for(const [i,[a,b]] of [['t1','t2'],['t2','t3'],['t3','t1']].entries())d.matches.push({id:`tie${i}`,name:'Tie match',eventId:'bali-2026',categoryId:'men-bronze',groupId:'g-a',stage:'GROUP',teamAId:a,teamBId:b,status:'FINISHED',winnerId:a,sets:straight});const rows=standings(d,'g-a').filter(r=>r.MP);expect(rows.every(r=>r.PTS===3&&r.H2H===3&&r.SD===0&&r.GD===0&&r.tied)).toBe(true);});
+ it('breaks equal points by head-to-head before set difference',()=>{d.matches=d.matches.filter(m=>m.groupId!=='g-a');[['t1','t2'],['t2','t3']].forEach(([a,b],i)=>d.matches.push({id:`h${i}`,name:'H2H',eventId:'bali-2026',categoryId:'men-bronze',groupId:'g-a',stage:'GROUP',teamAId:a,teamBId:b,status:'FINISHED',winnerId:a,sets:straight}));const rows=standings(d,'g-a');expect(rows[0].team.id).toBe('t1');expect(rows[1].team.id).toBe('t2');});
+ it('team moves remove its old group results from the table',()=>{d.teams[0].groupId='g-b';expect(standings(d,'g-a').some(r=>r.team.id==='t1')).toBe(false);expect(standings(d,'g-b').find(r=>r.team.id==='t1')?.MP).toBe(0);});
+ it('hides soft-deleted parent entities from public matches',()=>{d.categories[0].deletedAt='today';expect(visibleMatches(d).some(m=>m.categoryId==='men-bronze')).toBe(false);expect(standings(d,'g-a')).toEqual([]);});
+});
+describe('bracket and scheduling',()=>{
+ it('advances winners then clears downstream scores when a result is corrected',()=>{updateScore(d,'qf1',straight,'FINISHED');updateScore(d,'qf2',straight,'FINISHED');expect(d.matches.find(m=>m.id==='sf1')?.teamAId).toBe('t1');updateScore(d,'sf1',straight,'FINISHED');expect(d.matches.find(m=>m.id==='final')?.teamAId).toBe('t1');updateScore(d,'qf1',reverse,'FINISHED');expect(d.matches.find(m=>m.id==='sf1')).toMatchObject({teamAId:'t2',teamBId:'t3',sets:[],status:'SCHEDULED'});expect(d.matches.find(m=>m.id==='final')?.teamAId).toBe('');});
+ it('traverses configured downstream slots',()=>{expect(descendants(d,'qf1')).toEqual(['sf1','final']);clearProgression(d,'qf1');expect(d.matches.find(m=>m.id==='sf1')?.winnerId).toBeUndefined();});
+ it('warns for overlapping courts and participants without blocking valid forms',()=>{const m={...d.matches[0],id:'other',scheduledAt:'2026-09-12T08:30:00+08:00'};expect(scheduleWarnings(d,m)).toHaveLength(2);});
+});
+describe('demo repository',()=>{
+ it('creates, edits, deletes and restores a team with audit records',()=>{const store=useTournament.getState();const team={id:'new',name:'Test Pair',eventId:'bali-2026',categoryId:'men-bronze',groupId:'g-a'};store.save('teams',team);store.save('teams',{...team,name:'Updated Pair'});store.remove('teams','new');expect(useTournament.getState().data.teams.find(t=>t.id==='new')?.deletedAt).toBeTruthy();store.restore('teams','new');expect(useTournament.getState().data.teams.find(t=>t.id==='new')).toMatchObject({name:'Updated Pair'});expect(useTournament.getState().data.audits.length).toBe(5);});
+ it('generates round-robin matches without duplicate pairs',()=>{const store=useTournament.getState();expect(store.generate('g-a')).toBe(0);store.save('teams',{id:'extra',name:'Extra Pair',eventId:'bali-2026',categoryId:'men-bronze',groupId:'g-a'});expect(store.generate('g-a')).toBe(4);expect(store.generate('g-a')).toBe(0);});
+ it('rejects invalid score without mutating the store',()=>{const previous=JSON.stringify(useTournament.getState().data);expect(()=>useTournament.getState().score('m1',[{a:5,b:5}],'FINISHED')).toThrow();expect(JSON.stringify(useTournament.getState().data)).toBe(previous);});
+ it('prevents deleting a referenced record permanently',()=>{const store=useTournament.getState();store.remove('teams','t1');expect(()=>store.remove('teams','t1',true)).toThrow('referenced');});
+ it('enforces demo role and event assignments in actions',()=>{useTournament.setState({userId:'u3'});expect(()=>useTournament.getState().remove('teams','t1')).toThrow('Scorekeepers');expect(()=>useTournament.getState().score('m1',reverse,'FINISHED')).toThrow('Event Admin');useTournament.setState({userId:'u2'});expect(()=>useTournament.getState().save('events',{...d.events[1],name:'No access'})).toThrow('not assigned');});
+ it('serializes and hydrates browser-local changes',async()=>{useTournament.getState().save('teams',{...d.teams[0],name:'Persisted Pair'});const saved=localStorage.getItem('pbs-demo-v1');expect(saved).toContain('Persisted Pair');useTournament.setState({data:createSeed()});localStorage.setItem('pbs-demo-v1',saved!);await useTournament.persist.rehydrate();expect(useTournament.getState().data.teams[0].name).toBe('Persisted Pair');});
+ it('recovers malformed persisted data',async()=>{localStorage.setItem('pbs-demo-v1','{"state":{"data":{"events":[]}},"version":1}');await useTournament.getState().hydrate();expect(useTournament.getState().data.events[0].slug).toBe('bali-open-2026');expect(useTournament.getState().storageError).toContain('damaged');});
+});

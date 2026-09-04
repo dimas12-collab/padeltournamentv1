@@ -1,0 +1,1 @@
+export default function Loading() { return <main className="page"><div className="skeleton h-20 w-1/2"/><div className="skeleton mt-8 h-64"/><div className="grid-3 mt-6">{[1,2,3].map(i=><div key={i} className="skeleton h-48"/>)}</div></main>; }

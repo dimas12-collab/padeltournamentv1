@@ -1,0 +1,25 @@
+import type { Data, Rules, Match } from './types';
+export const DEFAULT_RULES:Rules = {win:3,loss:0,split:false,win20:3,win21:2,loss12:1,loss02:0,tieBreak:['PTS','H2H','SD','GD','GF']};
+export const DEMO_NOW = '2026-09-12T10:30:00+08:00';
+export function createSeed():Data {
+  const names=['Smash Bros','Lobster','Bandeja Boys','Glass Warriors','Padelholic','The Bandejas','Golden Set','Court Kings','Velvet Volley','Ace Society','The Mavericks','Net Profits','Matcha Point','Love All','Sunday Club','Baseline Crew'];
+  const people=['Dimas Pratama','Andi Wijaya','Kevin Santoso','Rizky Aditya','Fajar Putra','Reza Mahendra','Arif Rahman','Bima Saputra','Daniel Tan','Erwin Surya','Gilang Prakoso','Hendra Kurnia','Ivan Setiawan','Johan Lim','Kenny Hartono','Leo Saputra','Maya Putri','Nadia Sari','Olivia Tan','Putri Dewi','Rani Wijaya','Sarah Indah','Tara Kusuma','Vina Lestari','Alya Putri','Bella Anggraini','Citra Dewi','Dinda Laras','Eva Melati','Farah Nabila','Gita Maharani','Hana Pertiwi'];
+  const teams=names.map((name,i)=>({id:`t${i+1}`,name,eventId:'bali-2026',categoryId:i<8?'men-bronze':i<12?'men-silver':'women-bronze',groupId:i<4?'g-a':i<8?'g-b':i<12?'g-c':'g-d',seed:i+1}));
+  const matches:Match[]=[];
+  [['t1','t2'],['t3','t4'],['t1','t3'],['t2','t4'],['t1','t4'],['t2','t3'],['t5','t6'],['t7','t8'],['t5','t7'],['t6','t8'],['t5','t8'],['t6','t7'],['t9','t10'],['t11','t12'],['t13','t14'],['t15','t16']].forEach(([a,b],i)=>{
+    const team=teams.find(t=>t.id===a)!;
+    const finished=[0,1,2,6,7,12,14].includes(i);
+    matches.push({id:`m${i+1}`,name:`${teams.find(t=>t.id===a)!.name} vs ${teams.find(t=>t.id===b)!.name}`,eventId:'bali-2026',categoryId:team.categoryId,groupId:team.groupId,stage:'GROUP',teamAId:a,teamBId:b,courtId:`c${i%3+1}`,scheduledAt:`2026-09-12T${String(8+Math.floor(i/3)).padStart(2,'0')}:00:00+08:00`,status:finished?'FINISHED':[3,8].includes(i)?'LIVE':i===15?'POSTPONED':'SCHEDULED',sets:finished?(i===2?[{a:6,b:4},{a:4,b:6},{a:10,b:7}]:[{a:6,b:3},{a:6,b:4}]):[3,8].includes(i)?[{a:4,b:3}]:[],winnerId:finished?a:undefined});
+  });
+  for(let i=0;i<4;i++) matches.push({id:`qf${i+1}`,name:`Quarter-final ${i+1}`,eventId:'bali-2026',categoryId:'men-bronze',stage:'QUARTER_FINAL',teamAId:`t${i*2+1}`,teamBId:`t${i*2+2}`,courtId:`c${i%3+1}`,scheduledAt:`2026-09-13T${10+i}:00:00+08:00`,status:'SCHEDULED',sets:[],nextMatchId:`sf${i<2?1:2}`,nextSlot:i%2===0?'A':'B'});
+  matches.push(...[1,2].map(i=>({id:`sf${i}`,name:`Semi-final ${i}`,eventId:'bali-2026',categoryId:'men-bronze',stage:'SEMI_FINAL' as const,teamAId:'',teamBId:'',status:'SCHEDULED' as const,sets:[],nextMatchId:'final',nextSlot:i===1?'A' as const:'B' as const})),{id:'final',name:'Grand final',eventId:'bali-2026',categoryId:'men-bronze',stage:'FINAL',teamAId:'',teamBId:'',status:'SCHEDULED',sets:[]});
+  return {
+    events:[{id:'bali-2026',name:'Bali Open 2026',slug:'bali-open-2026',organizer:'A Sportaiment',venue:'Bali Social Club · Canggu',description:'Three days. One community. A new chapter of Padel Battle Series brings the competition to Bali. Follow every match, every set, and every moment on court.',startDate:'2026-09-12',endDate:'2026-09-14',status:'ONGOING'}, {id:'jakarta-2026',name:'Jakarta Masters',slug:'jakarta-masters-2026',organizer:'A Sportaiment',venue:'Racquet Padel Club · Jakarta',description:'The next stop in the series. More courts, more competition.',startDate:'2026-10-10',endDate:'2026-10-11',status:'UPCOMING'}, {id:'surabaya-2026',name:'Surabaya Invitational',slug:'surabaya-invitational-2026',organizer:'A Sportaiment',venue:'Padel House · Surabaya',description:'An unforgettable opening chapter of the series.',startDate:'2026-08-15',endDate:'2026-08-16',status:'FINISHED'}],
+    categories:[{id:'men-bronze',name:'Men Bronze',eventId:'bali-2026',rules:structuredClone(DEFAULT_RULES)},{id:'men-silver',name:'Men Silver',eventId:'bali-2026',rules:structuredClone(DEFAULT_RULES)},{id:'women-bronze',name:'Women Bronze',eventId:'bali-2026',rules:structuredClone(DEFAULT_RULES)}],
+    groups:[{id:'g-a',name:'Group A',eventId:'bali-2026',categoryId:'men-bronze'},{id:'g-b',name:'Group B',eventId:'bali-2026',categoryId:'men-bronze'},{id:'g-c',name:'Group A',eventId:'bali-2026',categoryId:'men-silver'},{id:'g-d',name:'Group A',eventId:'bali-2026',categoryId:'women-bronze'}],teams,
+    players:people.map((name,i)=>({id:`p${i+1}`,name,eventId:'bali-2026',teamId:`t${Math.floor(i/2)+1}`})),
+    courts:[1,2,3].map(i=>({id:`c${i}`,name:`Court ${i}`,eventId:'bali-2026',active:true,sortOrder:i})),matches,
+    users:[{id:'u1',name:'Alex Morgan',email:'alex@example.test',role:'SUPER_ADMIN',eventId:'bali-2026',active:true},{id:'u2',name:'Dimas Pratama',email:'dimas@example.test',role:'EVENT_ADMIN',eventId:'bali-2026',active:true},{id:'u3',name:'Sarah Indah',email:'sarah@example.test',role:'SCOREKEEPER',eventId:'bali-2026',active:true}],
+    audits:[{id:'a1',name:'Bali Open 2026',userId:'u1',userName:'Alex Morgan',action:'Created event',entity:'events',entityId:'bali-2026',timestamp:'2026-09-10T09:00:00+08:00',after:'Bali Open 2026 · Canggu'}]
+  };
+}
