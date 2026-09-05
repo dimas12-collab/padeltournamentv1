@@ -1,5 +1,5 @@
 import type { Data, Rules, Match } from './types';
-export const DEFAULT_RULES:Rules = {win:3,loss:0,split:false,win20:3,win21:2,loss12:1,loss02:0,tieBreak:['PTS','H2H','SD','GD','GF'],qualifiersPerGroup:2,bracketSize:8};
+export const DEFAULT_RULES:Rules = {win:3,loss:0,split:false,win20:3,win21:2,loss12:1,loss02:0,tieBreak:['PTS','H2H','SD','GD','GF'],qualifiersPerGroup:2,bracketSize:8,standingColumns:['MP','W','L','SF','SA','SD','GF','GA','GD']};
 export const DEMO_NOW = '2026-09-12T10:30:00+08:00';
 export function createSeed():Data {
   const names=['Smash Bros','Lobster','Bandeja Boys','Glass Warriors','Padelholic','The Bandejas','Golden Set','Court Kings','Velvet Volley','Ace Society','The Mavericks','Net Profits','Matcha Point','Love All','Sunday Club','Baseline Crew'];

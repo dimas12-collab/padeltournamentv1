@@ -3,9 +3,11 @@ export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'POSTPONED' | 'CAN
 export type Stage = 'GROUP' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL' | 'OTHER';
 export const LINEUP_CATEGORIES = ['BEGINNER','BRONZE','EXTRA'] as const;
 export type LineupCategory = typeof LINEUP_CATEGORIES[number];
+export const STANDING_COLUMNS = ['PTS','MP','W','L','SF','SA','SD','GF','GA','GD'] as const;
+export type StandingColumn = typeof STANDING_COLUMNS[number];
 export interface Base { id:string; name:string; deletedAt?:string; createdAt?:string; }
 export interface Event extends Base { slug:string; organizer:string; venue:string; description:string; startDate:string; endDate:string; status:'UPCOMING'|'ONGOING'|'FINISHED'; logo?:string; banner?:string; }
-export interface Rules { win:number; loss:number; split:boolean; win20:number; win21:number; loss12:number; loss02:number; tieBreak:('PTS'|'H2H'|'SD'|'GD'|'GF')[]; qualifiersPerGroup?:number; bracketSize?:2|4|8; }
+export interface Rules { win:number; loss:number; split:boolean; win20:number; win21:number; loss12:number; loss02:number; tieBreak:('PTS'|'H2H'|'SD'|'GD'|'GF')[]; qualifiersPerGroup?:number; bracketSize?:2|4|8; standingColumns?:StandingColumn[]; }
 export interface Category extends Base { eventId:string; rules:Rules; }
 export interface Group extends Base { eventId:string; categoryId:string; }
 export interface Team extends Base { eventId:string; categoryId:string; groupId?:string; seed?:number; logo?:string; }
