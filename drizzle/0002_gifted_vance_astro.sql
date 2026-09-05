@@ -1,0 +1,1 @@
+ALTER TABLE "matches" ADD COLUMN "lineup_category" text;
