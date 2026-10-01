@@ -8,8 +8,8 @@ const straight:MatchSet[]=[{a:6,b:3},{a:6,b:4}];
 const reverse:MatchSet[]=[{a:3,b:6},{a:4,b:6}];
 beforeEach(()=>{d=createSeed();const values=new Map<string,string>();vi.stubGlobal('localStorage',{getItem:(k:string)=>values.get(k)||null,setItem:(k:string,v:string)=>values.set(k,v),removeItem:(k:string)=>values.delete(k)});useTournament.setState({data:createSeed(),userId:'u1',storageError:'',hydrated:false});});
 describe('score validation',()=>{
- it.each([straight,reverse,[{a:6,b:3},{a:4,b:6},{a:10,b:7}],[{a:3,b:6},{a:6,b:4},{a:7,b:10}],[{a:7,b:6},{a:5,b:7},{a:10,b:9}]])('accepts a complete legal result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeUndefined());
- it.each([[{a:6,b:5},{a:6,b:2}],[{a:6,b:0},{a:6,b:0},{a:10,b:0}],[{a:6,b:4},{a:3,b:6},{a:11,b:10}],[{a:-1,b:6},{a:2,b:6}],[{a:6.5,b:3},{a:6,b:4}],[{a:6,b:4}]])('rejects invalid result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeTruthy());
+ it.each([straight,reverse,[{a:6,b:3},{a:4,b:6},{a:10,b:7}],[{a:3,b:6},{a:6,b:4},{a:7,b:10}],[{a:6,b:5},{a:5,b:6},{a:10,b:9}]])('accepts a complete legal result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeUndefined());
+ it.each([[{a:7,b:5},{a:6,b:2}],[{a:6,b:0},{a:6,b:0},{a:10,b:0}],[{a:6,b:4},{a:3,b:6},{a:11,b:10}],[{a:-1,b:6},{a:2,b:6}],[{a:6.5,b:3},{a:6,b:4}],[{a:6,b:4}]])('rejects invalid result %j',(...sets:MatchSet[])=>expect(validateSets(sets)).toBeTruthy());
  it('counts set victories independently from games',()=>expect(setWins([{a:6,b:3},{a:4,b:6},{a:10,b:8}])).toEqual({a:2,b:1}));
  it('accepts one regular set for an Extra match',()=>expect(validateSets([{a:6,b:4}],'EXTRA')).toBeUndefined());
 });
