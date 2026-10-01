@@ -4,7 +4,7 @@ export function setWins(sets:MatchSet[]) { return sets.reduce((s,v)=>({a:s.a+(v.
 export function validateSets(sets:MatchSet[],lineupCategory?:Match['lineupCategory']):string|undefined {
  if(lineupCategory==='EXTRA'&&sets.length!==1)return 'Complete one set for the Extra match.';
  if(lineupCategory!=='EXTRA'&&(sets.length<2||sets.length>3))return 'Complete two or three sets before finishing.';
- for(let i=0;i<sets.length;i++) {const {a,b}=sets[i];if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0)return 'Scores must be whole numbers of zero or more.';const high=Math.max(a,b),low=Math.min(a,b);if(i<2?!((high===6&&low<=4)||(high===7&&(low===5||low===6))):!(high>=10&&high-low>=2&&(high===10||high-low===2)))return `Set ${i+1}: ${i<2?'use a valid set score (6–0 to 6–4, 7–5 or 7–6).':'the deciding tiebreak is first to 10, win by two.'}`;}
+ for(let i=0;i<sets.length;i++) {const {a,b}=sets[i];if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<0)return 'Scores must be whole numbers of zero or more.';const high=Math.max(a,b),low=Math.min(a,b);if(i<2?!((high===6&&low<=4)||(high===7&&(low===5||low===6))):!(high===10&&low<=9))return `Set ${i+1}: ${i<2?'use a valid set score (6–0 to 6–4, 7–5 or 7–6).':'the deciding tiebreak is first to 10; a one-point lead is enough.'}`;}
  if(lineupCategory==='EXTRA')return;
  const first=setWins(sets.slice(0,2));if((first.a===2||first.b===2)&&sets.length===3)return 'A third set is not played after a 2–0 result.';const result=setWins(sets);if(result.a!==2&&result.b!==2)return 'A team must win two sets.';
 }
