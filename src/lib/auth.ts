@@ -10,7 +10,7 @@ export const auth = betterAuth({
     provider: "pg",
     schema: { user: users, session: sessions, account: accounts, verification: verifications },
   }),
-  emailAndPassword: { enabled: true, requireEmailVerification: false },
+  emailAndPassword: { enabled: true, requireEmailVerification: false, disableSignUp: true },
   databaseHooks: {
     user: {
       create: {
