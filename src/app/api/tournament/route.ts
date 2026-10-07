@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { requireUser } from "@/lib/permissions";
-import { deleteTournamentRecord, readTournamentData, restoreTournamentRecord, saveScore, saveTournamentRecord } from "@/lib/tournament-db";
-import type { Entity, Match, MatchSet, RecordItem } from "@/lib/types";
+import { deleteTournamentRecord, readTournamentData, restoreTournamentRecord, saveKnockoutScore, saveScore, saveTournamentRecord } from "@/lib/tournament-db";
+import type { Entity, LineupCategory, Match, MatchSet, RecordItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +14,10 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const user = await requireUser(request);
-    const body = await request.json() as { action: "save" | "score" | "delete" | "restore"; entity?: Entity; record?: RecordItem; id?: string; permanent?: boolean; sets?: MatchSet[]; status?: Match["status"] };
+    const body = await request.json() as { action: "save" | "score" | "scoreKnockout" | "delete" | "restore"; entity?: Entity; record?: RecordItem; id?: string; permanent?: boolean; lineupCategory?: LineupCategory; sets?: MatchSet[]; status?: Match["status"] };
     if (body.action === "save" && body.entity && body.record) await saveTournamentRecord(user, body.entity, body.record);
     else if (body.action === "score" && body.id && body.sets && body.status) await saveScore(user, body.id, body.sets, body.status);
+    else if (body.action === "scoreKnockout" && body.id && body.lineupCategory && body.sets && body.status) await saveKnockoutScore(user, body.id, body.lineupCategory, body.sets, body.status);
     else if (body.action === "delete" && body.entity && body.id) await deleteTournamentRecord(user, body.entity, body.id, Boolean(body.permanent));
     else if (body.action === "restore" && body.entity && body.id) await restoreTournamentRecord(user, body.entity, body.id);
     else return NextResponse.json({ error: "Invalid tournament operation." }, { status: 400 });
