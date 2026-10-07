@@ -91,6 +91,9 @@ export async function saveScore(user: DbUser, matchId: string, sets: MatchSet[],
   if (user.role === "SCOREKEEPER" && match.status === "FINISHED") throw new Error("An Event Admin must correct a finished result.");
   updateScore(data, matchId, sets, status);
   const ids = new Set([matchId, ...descendants(data, matchId)]);
+  if (match.lineupCategory && match.groupId) {
+    for (const item of data.matches.filter((candidate) => candidate.eventId === match.eventId && candidate.categoryId === match.categoryId && candidate.groupId === match.groupId && candidate.lineupCategory && [candidate.teamAId, candidate.teamBId].includes(match.teamAId) && [candidate.teamAId, candidate.teamBId].includes(match.teamBId))) ids.add(item.id);
+  }
   for (const id of ids) { const item = data.matches.find((candidate) => candidate.id === id); if (item) await replaceMatch(item); }
   await log(user, status === "FINISHED" ? "Published match result" : "Updated match score", "matches", matchId, { sets, status });
 }
