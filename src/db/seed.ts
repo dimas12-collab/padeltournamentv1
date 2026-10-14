@@ -8,7 +8,7 @@ const iso = (date: string) => new Date(date.includes("T") ? date : `${date}T00:0
 
 async function main() {
   await db.transaction(async (tx) => {
-  await tx.insert(events).values(demo.events.map((event) => ({ id: event.id, name: event.name, slug: event.slug, organizer: event.organizer, venue: event.venue, description: event.description, logoUrl: event.logo, bannerUrl: event.banner, startDate: iso(event.startDate), endDate: iso(event.endDate), status: event.status }))).onConflictDoNothing();
+  await tx.insert(events).values(demo.events.map((event) => ({ id: event.id, name: event.name, slug: event.slug, organizer: event.organizer, venue: event.venue, description: event.description, logoUrl: event.logo, bannerUrl: event.banner, sponsorBackground: event.sponsorBackground, sponsorImages: event.sponsors ?? [], startDate: iso(event.startDate), endDate: iso(event.endDate), status: event.status }))).onConflictDoNothing();
   await tx.insert(categories).values(demo.categories.map((category) => ({ id: category.id, eventId: category.eventId, name: category.name, slug: category.name.toLowerCase().replaceAll(" ", "-"), scoringRule: category.rules, tieBreakRule: category.rules.tieBreak }))).onConflictDoNothing();
   await tx.insert(groups).values(demo.groups.map((group, sortOrder) => ({ id: group.id, categoryId: group.categoryId, name: group.name, sortOrder }))).onConflictDoNothing();
   await tx.insert(teams).values(demo.teams.map((team) => ({ id: team.id, eventId: team.eventId, categoryId: team.categoryId, name: team.name, logoUrl: team.logo, seedNumber: team.seed }))).onConflictDoNothing();

@@ -38,7 +38,7 @@ export const verifications = pgTable("verifications", {
 }, (table) => [index("verifications_identifier_idx").on(table.identifier)]);
 
 export const events = pgTable("events", {
-  id: text("id").primaryKey(), name: text("name").notNull(), slug: text("slug").notNull(), logoUrl: text("logo_url"), bannerUrl: text("banner_url"), organizer: text("organizer").notNull(), venue: text("venue").notNull(), description: text("description").notNull(), startDate: timestamp("start_date", { withTimezone: true }).notNull(), endDate: timestamp("end_date", { withTimezone: true }).notNull(), status: eventStatusEnum("status").notNull(), deletedAt: timestamp("deleted_at", { withTimezone: true }), ...timestamps,
+  id: text("id").primaryKey(), name: text("name").notNull(), slug: text("slug").notNull(), logoUrl: text("logo_url"), bannerUrl: text("banner_url"), sponsorBackground: text("sponsor_background"), sponsorImages: jsonb("sponsor_images").notNull().default(sql`'[]'::jsonb`), organizer: text("organizer").notNull(), venue: text("venue").notNull(), description: text("description").notNull(), startDate: timestamp("start_date", { withTimezone: true }).notNull(), endDate: timestamp("end_date", { withTimezone: true }).notNull(), status: eventStatusEnum("status").notNull(), deletedAt: timestamp("deleted_at", { withTimezone: true }), ...timestamps,
 }, (table) => [uniqueIndex("events_slug_unique").on(table.slug)]);
 
 export const categories = pgTable("categories", {
