@@ -40,7 +40,8 @@ function assertPermission(user: DbUser, eventId: string, scoreOnly = false) {
 }
 
 async function log(user: DbUser, action: string, entity: string, entityId: string, afterData?: unknown) {
-  await db.insert(auditLogs).values({ id: crypto.randomUUID(), userId: user.id, action, entityType: entity, entityId, afterData: afterData ?? null });
+  const sanitized = afterData && typeof afterData === "object" && !Array.isArray(afterData) ? Object.fromEntries(Object.entries(afterData).filter(([key]) => !["logo", "banner", "photo", "sponsors"].includes(key))) : afterData;
+  await db.insert(auditLogs).values({ id: crypto.randomUUID(), userId: user.id, action, entityType: entity, entityId, afterData: sanitized ?? null });
 }
 
 export async function saveTournamentRecord(user: DbUser, entity: Entity, record: RecordItem) {
