@@ -7,8 +7,13 @@ import type { Entity, LineupCategory, Match, MatchSet, RecordItem } from "@/lib/
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  return NextResponse.json({ data: await readTournamentData(Boolean(session?.user)), userId: session?.user?.id ?? null });
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    return NextResponse.json({ data: await readTournamentData(Boolean(session?.user)), userId: session?.user?.id ?? null });
+  } catch (error) {
+    console.error("Tournament data request failed.", error);
+    return NextResponse.json({ error: "Tournament database is unavailable or not migrated." }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {

@@ -39,6 +39,8 @@ RUN addgroup --system --gid 1001 nodejs \
 # Next.js writes the traced production server to .next/standalone.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Runtime startup applies pending Drizzle migrations from this directory.
+COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 
 USER nextjs
 EXPOSE 3000
